@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:todo/modules/Archived_tasks_screen.dart';
 import 'package:todo/modules/done_tasks_screen.dart';
 import 'package:todo/modules/new_tasks_screen.dart';
@@ -20,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   int currentPosition = 0;
-
+  Database? database = null;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,7 +35,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: screens[currentPosition],
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () async {
+          createDatabase();
+        },
         child: Icon(Icons.add),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -63,5 +66,34 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: currentPosition,
       ),
     );
+  }
+
+  void createDatabase() async {
+// open the database
+    database = await openDatabase("todo.db",
+        version: 1,
+        onCreate: (Database database, int version) async {
+          print("database created");
+          // When creating the db, create the table
+          await database.execute(
+              'CREATE TABLE Tasks (id INTEGER PRIMARY KEY, title TEXT, time TEXT, date TEXT , status TEXT)').then((value) =>
+          print("TABLE created"));
+        },
+        onOpen: (db) {
+          print("database opened");
+        },
+        );
+  }
+
+  void insetRowIntoDatabase(){
+
+  }
+
+  void deleteRowFromDatabase(){
+
+  }
+
+  void updateRowInDatabase(){
+
   }
 }
