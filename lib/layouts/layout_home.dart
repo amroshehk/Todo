@@ -5,6 +5,7 @@ import 'package:todo/modules/Archived_tasks_screen.dart';
 import 'package:todo/modules/done_tasks_screen.dart';
 import 'package:todo/modules/new_tasks_screen.dart';
 import 'package:todo/shared/components/components.dart';
+import 'package:todo/shared/components/constants.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<String> tabsName = ["New Tasks", "Done Tasks", "Archived Tasks"];
 
   List<Widget> screens = [
-    const NewTasksScreen(),
+    NewTasksScreen(),
     const DoneTasksScreen(),
     const ArchivedTasksScreen()
   ];
@@ -72,7 +73,12 @@ class _HomeScreenState extends State<HomeScreen> {
             scaffoldKey.currentState?.showBottomSheet(
                 (context) => createAddNewTaskBottomSheet(context),
                 backgroundColor: Colors.white,
-            elevation: 1.0,);
+            elevation: 1.0,).closed.then((value){
+              isBottomSheetOpen = false;
+              setState(() {
+                floatIcon = Icons.edit;
+              });
+            });
             isBottomSheetOpen = true;
             setState(() {
               floatIcon = Icons.add;
@@ -124,6 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       onOpen: (db) {
         print("database opened");
+        getDataFromDatabase(db);
       },
     );
   }
@@ -138,6 +145,11 @@ class _HomeScreenState extends State<HomeScreen> {
        print('Error when inset row ${error.toString()}');
      }
     );
+  }
+
+  Future<void> getDataFromDatabase(database) async {
+  tasks = await database?.rawQuery('SELECT * from Tasks');
+  print(tasks);
   }
 
   void deleteRowFromDatabase() {}
