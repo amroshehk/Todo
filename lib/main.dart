@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:todo/shared/components/cubit_observer.dart';
 
 import 'layouts/layout_home.dart';
+import 'package:bloc/bloc.dart';
 
 void main() {
+  Bloc.observer = AppBlocObserver();
   runApp(const MyApp());
 }
 

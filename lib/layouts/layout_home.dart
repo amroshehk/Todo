@@ -6,27 +6,16 @@ import 'package:todo/modules/done_tasks_screen.dart';
 import 'package:todo/modules/new_tasks_screen.dart';
 import 'package:todo/shared/components/components.dart';
 import 'package:todo/shared/components/constants.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:todo/shared/components/cubit.dart';
+import 'package:todo/shared/components/states.dart';
+import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatelessWidget {
+   HomeScreen({super.key});
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
 
-class _HomeScreenState extends State<HomeScreen> {
-  List<String> tabsName = ["New Tasks", "Done Tasks", "Archived Tasks"];
 
-  List<Widget> screens = [
-    NewTasksScreen(),
-    const DoneTasksScreen(),
-    const ArchivedTasksScreen()
-  ];
-
-  int currentPosition = 0;
-  Database? database ;
-  bool isBottomSheetOpen = false;
-  IconData floatIcon = Icons.edit;
 
   var formKey = GlobalKey<FormState>();
   var scaffoldKey = GlobalKey<ScaffoldState>();
@@ -37,120 +26,91 @@ class _HomeScreenState extends State<HomeScreen> {
   var date = '';
   var time = '';
 
-  @override
-  void initState() {
-    super.initState();
-    createDatabase();
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   createDatabase();
+  // }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: scaffoldKey,
-      appBar: AppBar(
-        title: Text(
-          tabsName[currentPosition],
-          style: TextStyle(color: Colors.white),
-        ),
-        elevation: 25,
-        backgroundColor: Colors.amberAccent,
-      ),
-      body: screens[currentPosition],
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          if (isBottomSheetOpen) {
-            if (formKey.currentState?.validate() == true) {
-              insetRowIntoDatabase(titleController.text.toString(),time,date,"new").then((value){
-                Navigator.pop(context);
-                isBottomSheetOpen = false;
-                setState(() {
-                  floatIcon = Icons.edit;
-                });
-              });
 
-            }
-          } else {
-            scaffoldKey.currentState?.showBottomSheet(
-                (context) => createAddNewTaskBottomSheet(context),
-                backgroundColor: Colors.white,
-            elevation: 1.0,).closed.then((value){
-              isBottomSheetOpen = false;
-              setState(() {
-                floatIcon = Icons.edit;
-              });
-            });
-            isBottomSheetOpen = true;
-            setState(() {
-              floatIcon = Icons.add;
-            });
+    return BlocProvider(
+      create: (BuildContext context) { return AppCubit()..createDatabase(); },
+      child: BlocConsumer<AppCubit,AppStates>(
+        listener: (BuildContext context, AppStates state) {
+
+          if(state is InsetRowIntoDatabaseState) {
+            Navigator.pop(context);
           }
         },
-        child: Icon(floatIcon),
+        builder:(context, state) {
+          var cubit = AppCubit.get(context);
+          return Scaffold(
+            key: scaffoldKey,
+            appBar: AppBar(
+              title: Text(
+                cubit.tabsName[cubit.currentPosition],
+                style: TextStyle(color: Colors.white),
+              ),
+              elevation: 25,
+              backgroundColor: Colors.amberAccent,
+            ),
+            body: ConditionalBuilder(
+              condition:state is! AppDatabaseLoaderDataState,
+              builder: (context) => cubit.screens[cubit.currentPosition],
+              fallback: (context) => const Center(child: CircularProgressIndicator()),
+            ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () {
+                if (cubit.isBottomSheetOpen) {
+                  if (formKey.currentState?.validate() == true) {
+                    cubit.insetRowIntoDatabase(titleController.text.toString(),time,date,"new");
+                  }
+                } else {
+                  scaffoldKey.currentState?.showBottomSheet(
+                        (context) => createAddNewTaskBottomSheet(context),
+                    backgroundColor: Colors.white,
+                    elevation: 1.0,).closed.then((value){
+                    cubit.changeBottomSheetState(false,Icons.edit);
+                  });
+                  cubit.changeBottomSheetState(true,Icons.add);
+                }
+              },
+              child: Icon(cubit.floatIcon),
+            ),
+            bottomNavigationBar: BottomNavigationBar(
+              items: [
+                BottomNavigationBarItem(
+                    icon: Icon(
+                      Icons.menu,
+                    ),
+                    label: cubit.tabsName[0]),
+                BottomNavigationBarItem(
+                    icon: Icon(
+                      Icons.check_circle_outline,
+                    ),
+                    label: cubit.tabsName[1]),
+                BottomNavigationBarItem(
+                    icon: Icon(
+                      Icons.archive_outlined,
+                    ),
+                    label: cubit.tabsName[2]),
+              ],
+              onTap: (value) {
+                // setState(() {
+                cubit.changeBottomNavigationTab(value);
+                // });
+              },
+              currentIndex: cubit.currentPosition,
+            ),
+          );
+        }   ,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: [
-          BottomNavigationBarItem(
-              icon: Icon(
-                Icons.menu,
-              ),
-              label: tabsName[0]),
-          BottomNavigationBarItem(
-              icon: Icon(
-                Icons.check_circle_outline,
-              ),
-              label: tabsName[1]),
-          BottomNavigationBarItem(
-              icon: Icon(
-                Icons.archive_outlined,
-              ),
-              label: tabsName[2]),
-        ],
-        onTap: (value) {
-          setState(() {
-            currentPosition = value;
-          });
-        },
-        currentIndex: currentPosition,
-      ),
     );
   }
 
-  void createDatabase() async {
-// open the database
-    database = await openDatabase(
-      "todo.db",
-      version: 1,
-      onCreate: (Database database, int version) async {
-        print("database created");
-        // When creating the db, create the table
-        await database
-            .execute(
-                'CREATE TABLE Tasks (id INTEGER PRIMARY KEY, title TEXT, time TEXT, date TEXT , status TEXT)')
-            .then((value) => print("TABLE created"));
-      },
-      onOpen: (db) {
-        print("database opened");
-        getDataFromDatabase(db);
-      },
-    );
-  }
 
-  Future<void> insetRowIntoDatabase(String title, String time, String date,String status) async {
-    await database?.transaction((txn) => txn.rawInsert(
-      'INSERT INTO Tasks(title, time, date, status) VALUES("$title", "$time", "$date","$status")'
-    )).then((value) {
-      print("row $value inserted successfully");
-    }).catchError(
-     (error){
-       print('Error when inset row ${error.toString()}');
-     }
-    );
-  }
-
-  Future<void> getDataFromDatabase(database) async {
-  tasks = await database?.rawQuery('SELECT * from Tasks');
-  print(tasks);
-  }
 
   void deleteRowFromDatabase() {}
 
