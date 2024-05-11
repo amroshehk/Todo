@@ -1,6 +1,8 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:todo/shared/components/cubit.dart';
 
 Widget defaultButton({
   required String title,
@@ -51,20 +53,42 @@ Widget defaultTextFormField(
 
     );
 
-Widget taskItem(Map task){
+Widget taskItem(Map task,BuildContext context ){
   return  Padding(
     padding: const EdgeInsets.all(18.0),
     child: Row(
+      mainAxisSize: MainAxisSize.max,
       children: [
         CircleAvatar(child: Text("${task["time"]}",style: TextStyle(fontSize:15,color: Colors.white),),radius: 45,backgroundColor: Colors.amber,),
         SizedBox(width: 10.0,),
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("${task["title"]}",style: TextStyle(fontWeight: FontWeight.bold,fontSize:20,),),
-            Text("${task["date"]}", style: TextStyle(fontWeight: FontWeight.w400,fontSize:15,color: Colors.grey))
-          ],
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                child: Row(
+                  children: [
+                    Expanded(
+                       child: Text("${task["title"]}",style: TextStyle(fontWeight: FontWeight.bold,fontSize:20,),)),
+                    Container(
+                      child: IconButton(onPressed:() {
+                        AppCubit.get(context).updateDataInDatabase(Status.done.name, task["id"]);
+                      }, icon: Icon(Icons.done_outline,color: CupertinoColors.activeGreen,)),
+                    ),
+                    Container(
+                      child: IconButton(onPressed: () {
+                        AppCubit.get(context).updateDataInDatabase(Status.archive.name, task["id"]);
+                      }, icon: Icon(Icons.archive_outlined,color: CupertinoColors.quaternaryLabel,)),
+                    ),
+                  ],
+                  mainAxisSize: MainAxisSize.max,
+                ),
+              ),
+              Container(
+                  width: double.infinity,
+                  child: Text("${task["date"]}", maxLines: 1,style: TextStyle(fontWeight: FontWeight.w400,fontSize:15,color: Colors.grey, overflow: TextOverflow.ellipsis)))
+            ],
+          ),
         )
       ],
     ),

@@ -65,7 +65,7 @@ class HomeScreen extends StatelessWidget {
               onPressed: () {
                 if (cubit.isBottomSheetOpen) {
                   if (formKey.currentState?.validate() == true) {
-                    cubit.insetRowIntoDatabase(titleController.text.toString(),time,date,"new");
+                    cubit.insetRowIntoDatabase(titleController.text.toString(),time,date,Status.newTask.name);
                   }
                 } else {
                   scaffoldKey.currentState?.showBottomSheet(

@@ -55,8 +55,7 @@ class AppCubit extends Cubit<AppStates> {
       onOpen: (db) {
         print("database opened");
         emit(AppDatabaseLoaderDataState());
-        getDataFromDatabase(db).then((value) =>
-            emit(GetDataFromDatabaseState()));
+        getDataFromDatabase(db);
       },
     ).then((value) {
       database = value;
@@ -71,8 +70,7 @@ class AppCubit extends Cubit<AppStates> {
       print("row $value inserted successfully");
       emit(InsetRowIntoDatabaseState());
       emit(AppDatabaseLoaderDataState());
-      getDataFromDatabase(database).then((value) =>
-          emit(GetDataFromDatabaseState()));
+      getDataFromDatabase(database);
     }).catchError(
             (error){
           print('Error when inset row ${error.toString()}');
@@ -80,11 +78,42 @@ class AppCubit extends Cubit<AppStates> {
     );
   }
 
+  List<Map> tasksNew = [];
+  List<Map> tasksDone = [];
+  List<Map> tasksArchive = [];
   List<Map> tasks = [];
 
-  Future<void> getDataFromDatabase(database) async {
-    tasks = await database?.rawQuery('SELECT * from Tasks');
-    print(tasks);
+  void getDataFromDatabase(database)  {
+    tasksNew.clear();
+    tasksDone.clear();
+    tasksArchive.clear();
+    database?.rawQuery('SELECT * from Tasks').then((List<Map> value) {
+      emit(GetDataFromDatabaseState());
+      value.forEach((element) {
+        if(Status.newTask.name == element["status"].toString()){
+          tasksNew.add(element);
+        } else if(Status.done.name == element["status"].toString()){
+          tasksDone.add(element);
+        }
+        else if(Status.archive.name == element["status"].toString()){
+          tasksArchive.add(element);
+        }
+      });
+
+    }
+        );
+
   }
 
+  Future<void> updateDataInDatabase(String status, int id) async {
+    // Update some record
+    await database?.rawUpdate(
+        'UPDATE Tasks SET status = ? WHERE id = ?', ['$status', id]).then((value) {
+        emit(UpdateDataInDatabaseState());
+        getDataFromDatabase(database);
+    });
+  }
+
+
 }
+enum Status { newTask , done, archive }

@@ -27,3 +27,7 @@ class InsetRowIntoDatabaseState extends AppStates {
 class GetDataFromDatabaseState extends AppStates {
 
 }
+
+class UpdateDataInDatabaseState extends AppStates {
+
+}

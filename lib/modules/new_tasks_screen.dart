@@ -18,7 +18,7 @@ class NewTasksScreen extends StatelessWidget {
         return ListView.separated(
             scrollDirection: Axis.vertical,
             itemBuilder: (context, index) {
-              return taskItem(cubit.tasks[index]);
+              return taskItem(cubit.tasksNew[index],context);
             }, separatorBuilder: (context, index) =>
             Padding(
               padding: const  EdgeInsetsDirectional.only(start: 20.0),
@@ -30,7 +30,7 @@ class NewTasksScreen extends StatelessWidget {
                 ),
               ),
             )
-            , itemCount: cubit.tasks.length);
+            , itemCount: cubit.tasksNew.length);
       },
     );
   }
