@@ -61,24 +61,31 @@ class HomeScreen extends StatelessWidget {
               builder: (context) => cubit.screens[cubit.currentPosition],
               fallback: (context) => const Center(child: CircularProgressIndicator()),
             ),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () {
-                if (cubit.isBottomSheetOpen) {
-                  if (formKey.currentState?.validate() == true) {
-                    cubit.insetRowIntoDatabase(titleController.text.toString(),time,date,Status.newTask.name);
+            floatingActionButton:
+            ConditionalBuilder(
+              condition:cubit.currentPosition == 0,
+              builder: (context) => FloatingActionButton(
+                onPressed: () {
+                  if (cubit.isBottomSheetOpen) {
+                    if (formKey.currentState?.validate() == true) {
+                      cubit.insetRowIntoDatabase(context,titleController.text.toString(),time,date,Status.newTask.name);
+                    }
+                  } else {
+                    scaffoldKey.currentState?.showBottomSheet(
+                          (context) => createAddNewTaskBottomSheet(context),
+                      backgroundColor: Colors.white,
+                      elevation: 1.0,).closed.then((value){
+                      cubit.changeBottomSheetState(false,Icons.edit);
+                    });
+                    cubit.changeBottomSheetState(true,Icons.add);
                   }
-                } else {
-                  scaffoldKey.currentState?.showBottomSheet(
-                        (context) => createAddNewTaskBottomSheet(context),
-                    backgroundColor: Colors.white,
-                    elevation: 1.0,).closed.then((value){
-                    cubit.changeBottomSheetState(false,Icons.edit);
-                  });
-                  cubit.changeBottomSheetState(true,Icons.add);
-                }
-              },
-              child: Icon(cubit.floatIcon),
+                },
+                child: Icon(cubit.floatIcon),
+              ),
+              fallback: (context) => Container(),
             ),
+
+
             bottomNavigationBar: BottomNavigationBar(
               items: [
                 BottomNavigationBarItem(

@@ -14,23 +14,8 @@ class DoneTasksScreen extends StatelessWidget {
       listener: (BuildContext context, AppStates state) {  },
 
       builder: (BuildContext context, AppStates state) {
-        var cubit = AppCubit.get(context);
-        return ListView.separated(
-            scrollDirection: Axis.vertical,
-            itemBuilder: (context, index) {
-              return taskItem(cubit.tasksDone[index],context);
-            }, separatorBuilder: (context, index) =>
-            Padding(
-              padding: const  EdgeInsetsDirectional.only(start: 20.0),
-              child: Container(
-                color: Colors.yellow,
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 1,
-                ),
-              ),
-            )
-            , itemCount: cubit.tasksDone.length);
+        var task = AppCubit.get(context).tasksDone;
+        return taskBuilder(task,messageNoTaskDone);
       },
     );
   }

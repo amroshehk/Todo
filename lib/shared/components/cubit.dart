@@ -63,11 +63,15 @@ class AppCubit extends Cubit<AppStates> {
     });
   }
 
-  void insetRowIntoDatabase(String title, String time, String date,String status) {
+  void insetRowIntoDatabase(BuildContext context, String title, String time, String date,String status) {
     database?.transaction((txn) => txn.rawInsert(
         'INSERT INTO Tasks(title, time, date, status) VALUES("$title", "$time", "$date","$status")'
     )).then((value) {
       print("row $value inserted successfully");
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Task  inserted successfully"),
+      ));
+
       emit(InsetRowIntoDatabaseState());
       emit(AppDatabaseLoaderDataState());
       getDataFromDatabase(database);
@@ -111,6 +115,19 @@ class AppCubit extends Cubit<AppStates> {
         'UPDATE Tasks SET status = ? WHERE id = ?', ['$status', id]).then((value) {
         emit(UpdateDataInDatabaseState());
         getDataFromDatabase(database);
+    });
+  }
+
+  Future<void> removeDataInDatabase(context,int id) async {
+    // Update some record
+    await database?.rawDelete(
+        'DELETE FROM Tasks WHERE id = ?', [id]).then((value) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Task deleted successfully"),
+      ));
+      emit(RemoveDataFromDatabaseState());
+      getDataFromDatabase(database);
+
     });
   }
 

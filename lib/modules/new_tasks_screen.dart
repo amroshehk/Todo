@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todo/shared/components/cubit.dart';
 import 'package:todo/shared/components/states.dart';
 
+
 class NewTasksScreen extends StatelessWidget {
   const NewTasksScreen({super.key});
 
@@ -14,23 +15,8 @@ class NewTasksScreen extends StatelessWidget {
       listener: (BuildContext context, AppStates state) {  },
 
       builder: (BuildContext context, AppStates state) {
-        var cubit = AppCubit.get(context);
-        return ListView.separated(
-            scrollDirection: Axis.vertical,
-            itemBuilder: (context, index) {
-              return taskItem(cubit.tasksNew[index],context);
-            }, separatorBuilder: (context, index) =>
-            Padding(
-              padding: const  EdgeInsetsDirectional.only(start: 20.0),
-              child: Container(
-                color: Colors.yellow,
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 1,
-                ),
-              ),
-            )
-            , itemCount: cubit.tasksNew.length);
+        var task = AppCubit.get(context).tasksNew;
+        return taskBuilder(task,messageNoTask);
       },
     );
   }

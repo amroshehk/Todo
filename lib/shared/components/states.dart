@@ -31,3 +31,7 @@ class GetDataFromDatabaseState extends AppStates {
 class UpdateDataInDatabaseState extends AppStates {
 
 }
+
+class RemoveDataFromDatabaseState extends AppStates {
+
+}
